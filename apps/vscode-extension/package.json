@@ -1,0 +1,76 @@
+{
+  "name": "semantic-agent-vscode-extension",
+  "displayName": "Semantic Agent",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/extension.js",
+  "engines": {
+    "vscode": "^1.92.0"
+  },
+  "activationEvents": [
+    "onCommand:semanticAgent.pingServer",
+    "onCommand:semanticAgent.validateWorkspaceContext"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "semanticAgent.pingServer",
+        "title": "Semantic Agent: Ping Server"
+      },
+      {
+        "command": "semanticAgent.validateWorkspaceContext",
+        "title": "Semantic Agent: Validate Workspace Context"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "semanticAgent",
+          "title": "Semantic Agent",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "semanticAgent": [
+        {
+          "id": "semanticAgent.contextHealth",
+          "name": "Context Health"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Semantic Agent",
+      "properties": {
+        "semanticAgent.serverUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:4317",
+          "description": "Local Semantic Agent server URL."
+        },
+        "semanticAgent.allowExternalModelCalls": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow external or provider-mediated model calls."
+        },
+        "semanticAgent.modelProvider": {
+          "type": "string",
+          "default": "auto",
+          "enum": ["auto", "vscode-lm", "github-copilot-sdk", "openai", "anthropic", "azure-openai", "ollama"],
+          "description": "Model provider used only when model calls are explicitly allowed."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "watch": "tsc -w -p tsconfig.json"
+  },
+  "dependencies": {
+    "@semantic-agent/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.92.0"
+  }
+}

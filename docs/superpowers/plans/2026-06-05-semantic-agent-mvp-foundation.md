@@ -121,10 +121,23 @@ fixtures/
 - Create: `packages/core/src/index.ts`
 - Create: `apps/local-server/package.json`
 - Create: `apps/local-server/tsconfig.json`
+- Create: `apps/local-server/src/index.ts`
 - Create: `apps/vscode-extension/package.json`
 - Create: `apps/vscode-extension/tsconfig.json`
+- Create: `apps/vscode-extension/src/extension.ts`
+- Create: `apps/vscode-extension/media/icon.svg`
+- Create: `.gitignore`
 
 - [ ] **Step 1: Create root package metadata**
+
+Create `.gitignore`:
+
+```gitignore
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+```
 
 Create `package.json`:
 
@@ -136,10 +149,10 @@ Create `package.json`:
   "type": "module",
   "scripts": {
     "build": "pnpm -r build",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "typecheck": "pnpm -r typecheck",
     "dev:api": "pnpm --filter @semantic-agent/local-server dev",
-    "watch:extension": "pnpm --filter @semantic-agent/vscode-extension watch"
+    "watch:extension": "pnpm --filter semantic-agent-vscode-extension watch"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
@@ -302,7 +315,9 @@ Create `apps/local-server/package.json`:
     "@hono/node-server": "^1.13.1",
     "@semantic-agent/core": "workspace:*",
     "@semantic-agent/shared": "workspace:*",
-    "hono": "^4.6.3",
+    "hono": "^4.6.3"
+  },
+  "devDependencies": {
     "tsx": "^4.19.1"
   }
 }
@@ -319,6 +334,12 @@ Create `apps/local-server/tsconfig.json`:
   },
   "include": ["src/**/*.ts"]
 }
+```
+
+Create `apps/local-server/src/index.ts`:
+
+```ts
+export {};
 ```
 
 Create `apps/vscode-extension/package.json`:
@@ -354,7 +375,7 @@ Create `apps/vscode-extension/package.json`:
         {
           "id": "semanticAgent",
           "title": "Semantic Agent",
-          "icon": "$(symbol-class)"
+          "icon": "media/icon.svg"
         }
       ]
     },
@@ -416,6 +437,35 @@ Create `apps/vscode-extension/tsconfig.json`:
 }
 ```
 
+Create `apps/vscode-extension/src/extension.ts`:
+
+```ts
+import * as vscode from "vscode";
+
+export function activate(context: vscode.ExtensionContext): void {
+  context.subscriptions.push(
+    vscode.commands.registerCommand("semanticAgent.pingServer", async () => {
+      await vscode.window.showInformationMessage("Semantic Agent server integration is not configured yet.");
+    }),
+    vscode.commands.registerCommand("semanticAgent.validateWorkspaceContext", async () => {
+      await vscode.window.showInformationMessage("Semantic Agent context validation is not configured yet.");
+    })
+  );
+}
+
+export function deactivate(): void {}
+```
+
+Create `apps/vscode-extension/media/icon.svg`:
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Semantic Agent">
+  <rect width="64" height="64" rx="8" fill="#1f2937"/>
+  <path d="M16 18h32v6H16zM16 30h22v6H16zM16 42h32v6H16z" fill="#f9fafb"/>
+  <path d="M42 28l8 5-8 5z" fill="#38bdf8"/>
+</svg>
+```
+
 - [ ] **Step 6: Install dependencies**
 
 Run:
@@ -442,7 +492,7 @@ Run:
 
 ```bash
 git status --short
-git add package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json vitest.config.ts packages apps
+git add .gitignore package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json vitest.config.ts packages apps
 git commit -m "chore: scaffold semantic agent workspace"
 git push origin HEAD
 ```

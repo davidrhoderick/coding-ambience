@@ -1,0 +1,21 @@
+{
+  "name": "@semantic-agent/local-server",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.1",
+    "@semantic-agent/core": "workspace:*",
+    "@semantic-agent/shared": "workspace:*",
+    "hono": "^4.6.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.1"
+  }
+}

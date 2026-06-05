@@ -1,0 +1,20 @@
+{
+  "name": "semantic-agent",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "pnpm -r typecheck",
+    "dev:api": "pnpm --filter @semantic-agent/local-server dev",
+    "watch:extension": "pnpm --filter semantic-agent-vscode-extension watch"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@vitest/coverage-v8": "^2.1.1",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  },
+  "packageManager": "pnpm@9.12.0"
+}

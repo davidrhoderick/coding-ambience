@@ -1,0 +1,22 @@
+{
+  "name": "@semantic-agent/core",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@semantic-agent/shared": "workspace:*",
+    "better-sqlite3": "^11.3.0",
+    "ignore": "^6.0.2",
+    "mdast-util-to-string": "^4.0.0",
+    "unified": "^11.0.5",
+    "remark-parse": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11"
+  }
+}
