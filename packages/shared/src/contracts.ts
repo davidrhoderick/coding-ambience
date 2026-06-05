@@ -1,7 +1,13 @@
 import type { ApiFailure, ApiSuccess } from "./api-types.js";
 
-export function isApiSuccess<T>(value: unknown): value is ApiSuccess<T> {
-  return typeof value === "object" && value !== null && "ok" in value && value.ok === true && "data" in value;
+export function isApiSuccess(value: unknown): value is ApiSuccess<unknown>;
+export function isApiSuccess<T>(value: unknown, dataGuard: (data: unknown) => data is T): value is ApiSuccess<T>;
+export function isApiSuccess<T>(value: unknown, dataGuard?: (data: unknown) => data is T): boolean {
+  if (typeof value !== "object" || value === null || !("ok" in value) || value.ok !== true || !("data" in value)) {
+    return false;
+  }
+
+  return dataGuard === undefined || dataGuard(value.data);
 }
 
 export function isApiFailure(value: unknown): value is ApiFailure {
