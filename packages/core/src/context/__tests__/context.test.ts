@@ -118,4 +118,68 @@ describe("context parsing", () => {
     expect(rules[1]?.text).toContain("npm run test");
     expect(rules[3]?.appliesTo).toEqual(["src/api/**/*.ts"]);
   });
+
+  it("gives duplicate same-line commands distinct ids and source columns", () => {
+    const parsed = parseContextFile({
+      path: "AGENTS.md",
+      text: "Run `npm run test` and `npm run test` before submitting."
+    });
+    const commandRules = extractRules(parsed).filter((rule) => rule.ruleType === "command-reference");
+
+    expect(commandRules).toHaveLength(2);
+    expect(commandRules[0]?.id).not.toBe(commandRules[1]?.id);
+    expect(commandRules[0]?.sourceRange.startColumn).toBe(6);
+    expect(commandRules[0]?.sourceRange.endColumn).toBe(18);
+    expect(commandRules[1]?.sourceRange.startColumn).toBe(25);
+    expect(commandRules[1]?.sourceRange.endColumn).toBe(37);
+  });
+
+  it("marks unterminated metadata fences and does not extract metadata-scope rules from them", () => {
+    const parsed = parseContextFile({
+      path: "AGENTS.md",
+      text: [
+        "Intro",
+        "```json semantic-agent",
+        "{",
+        '  "appliesTo": ["src/**/*.ts"]',
+        "}"
+      ].join("\n")
+    });
+    const rules = extractRules(parsed);
+
+    expect(parsed.metadataBlocks).toEqual([
+      {
+        startLine: 2,
+        endLine: 5,
+        value: { parseError: true, unterminated: true }
+      }
+    ]);
+    expect(rules.map((rule) => rule.ruleType)).not.toContain("metadata-scope");
+  });
+
+  it("sorts dependency rules before later metadata rules", () => {
+    const parsed = parseContextFile({
+      path: "AGENTS.md",
+      text: [
+        "Use TanStack Query for data fetching.",
+        "",
+        "```json semantic-agent",
+        "{",
+        '  "appliesTo": ["src/**/*.ts"]',
+        "}",
+        "```"
+      ].join("\n")
+    });
+
+    expect(extractRules(parsed).map((rule) => rule.ruleType)).toEqual(["dependency-reference", "metadata-scope"]);
+  });
+
+  it("does not create dependency rules for negated dependency mentions", () => {
+    const parsed = parseContextFile({
+      path: "AGENTS.md",
+      text: "Do not use Supabase for new data fetching."
+    });
+
+    expect(extractRules(parsed).filter((rule) => rule.ruleType === "dependency-reference")).toEqual([]);
+  });
 });

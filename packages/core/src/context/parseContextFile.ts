@@ -1,6 +1,3 @@
-import { unified } from "unified";
-import remarkParse from "remark-parse";
-
 export type ParsedContextLine = {
   line: number;
   text: string;
@@ -20,8 +17,6 @@ export type ParsedContextFile = {
 };
 
 export function parseContextFile(input: { path: string; text: string }): ParsedContextFile {
-  unified().use(remarkParse).parse(input.text);
-
   const lines = input.text.split(/\r?\n/).map((text, index) => ({
     line: index + 1,
     text
@@ -46,6 +41,7 @@ function extractJsonMetadataBlocks(lines: ParsedContextLine[]): JsonMetadataBloc
 
     const jsonLines: string[] = [];
     let endLine = line.line;
+    let terminated = false;
 
     for (let inner = index + 1; inner < lines.length; inner += 1) {
       const candidate = lines[inner];
@@ -53,13 +49,24 @@ function extractJsonMetadataBlocks(lines: ParsedContextLine[]): JsonMetadataBloc
         continue;
       }
 
+      endLine = candidate.line;
+
       if (candidate.text.trim() === "```") {
-        endLine = candidate.line;
+        terminated = true;
         index = inner;
         break;
       }
 
       jsonLines.push(candidate.text);
+    }
+
+    if (!terminated) {
+      blocks.push({
+        startLine: line.line,
+        endLine,
+        value: { parseError: true, unterminated: true }
+      });
+      continue;
     }
 
     try {
