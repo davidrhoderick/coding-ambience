@@ -35,6 +35,34 @@ describe("workspace metadata", () => {
       dependencies: []
     });
   });
+
+  it("returns empty metadata when package.json is not an object", async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), "semantic-agent-null-package-"));
+    await writeFile(join(workspaceRoot, "package.json"), "null", "utf8");
+
+    await expect(readPackageMetadata(workspaceRoot)).resolves.toEqual({
+      scripts: {},
+      dependencies: []
+    });
+  });
+
+  it("returns empty metadata when package.json fields are malformed", async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), "semantic-agent-malformed-package-"));
+    await writeFile(
+      join(workspaceRoot, "package.json"),
+      JSON.stringify({
+        packageManager: "pnpm@9.12.0",
+        scripts: "test",
+        dependencies: "not-a-dependency-map"
+      }),
+      "utf8"
+    );
+
+    await expect(readPackageMetadata(workspaceRoot)).resolves.toEqual({
+      scripts: {},
+      dependencies: []
+    });
+  });
 });
 
 describe("workspace file discovery", () => {

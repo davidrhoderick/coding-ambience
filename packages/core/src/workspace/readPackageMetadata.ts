@@ -14,15 +14,10 @@ type PackageJson = {
   devDependencies?: Record<string, string>;
 };
 
-const emptyPackageMetadata: PackageMetadata = {
-  scripts: {},
-  dependencies: []
-};
-
 export async function readPackageMetadata(workspaceRoot: string): Promise<PackageMetadata> {
   const parsed = await readPackageJson(workspaceRoot);
   if (!parsed) {
-    return emptyPackageMetadata;
+    return emptyPackageMetadata();
   }
 
   const packageManager = parsePackageManager(parsed.packageManager);
@@ -46,10 +41,53 @@ export async function readPackageMetadata(workspaceRoot: string): Promise<Packag
 async function readPackageJson(workspaceRoot: string): Promise<PackageJson | undefined> {
   try {
     const raw = await readFile(join(workspaceRoot, "package.json"), "utf8");
-    return JSON.parse(raw) as PackageJson;
+    return parsePackageJson(JSON.parse(raw));
   } catch {
     return undefined;
   }
+}
+
+function parsePackageJson(value: unknown): PackageJson | undefined {
+  if (!isPlainObject(value)) {
+    return undefined;
+  }
+
+  if ("packageManager" in value && typeof value.packageManager !== "string") {
+    return undefined;
+  }
+
+  if ("scripts" in value && !isStringRecord(value.scripts)) {
+    return undefined;
+  }
+
+  if ("dependencies" in value && !isStringRecord(value.dependencies)) {
+    return undefined;
+  }
+
+  if ("devDependencies" in value && !isStringRecord(value.devDependencies)) {
+    return undefined;
+  }
+
+  return value;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isStringRecord(value: unknown): value is Record<string, string> {
+  if (!isPlainObject(value)) {
+    return false;
+  }
+
+  return Object.values(value).every((recordValue) => typeof recordValue === "string");
+}
+
+function emptyPackageMetadata(): PackageMetadata {
+  return {
+    scripts: {},
+    dependencies: []
+  };
 }
 
 function parsePackageManager(value: string | undefined): PackageMetadata["packageManager"] {
