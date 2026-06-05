@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { resolve } from "node:path";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { discoverContextFiles } from "../discoverContextFiles.js";
 import { readPackageMetadata } from "../../workspace/readPackageMetadata.js";
+import { readWorkspaceFiles } from "../../workspace/readWorkspaceFiles.js";
 
 const fixtureRoot = resolve(process.cwd(), "fixtures/stale-context-repo");
 
@@ -12,6 +15,46 @@ describe("workspace metadata", () => {
     expect(metadata.packageManager).toBe("pnpm");
     expect(metadata.scripts).toEqual({ test: "vitest run" });
     expect(metadata.dependencies).toContain("@apollo/client");
+  });
+
+  it("returns empty metadata when package.json is missing", async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), "semantic-agent-missing-package-"));
+
+    await expect(readPackageMetadata(workspaceRoot)).resolves.toEqual({
+      scripts: {},
+      dependencies: []
+    });
+  });
+
+  it("returns empty metadata when package.json is invalid", async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), "semantic-agent-invalid-package-"));
+    await writeFile(join(workspaceRoot, "package.json"), "{", "utf8");
+
+    await expect(readPackageMetadata(workspaceRoot)).resolves.toEqual({
+      scripts: {},
+      dependencies: []
+    });
+  });
+});
+
+describe("workspace file discovery", () => {
+  it("ignores node_modules and normalizes paths", async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), "semantic-agent-files-"));
+    await mkdir(join(workspaceRoot, "src", "graphql"), { recursive: true });
+    await mkdir(join(workspaceRoot, "node_modules", "pkg"), { recursive: true });
+    await writeFile(join(workspaceRoot, "src", "graphql", "schema.ts"), "export {};", "utf8");
+    await writeFile(join(workspaceRoot, "node_modules", "pkg", "index.js"), "module.exports = {};", "utf8");
+
+    await expect(readWorkspaceFiles(workspaceRoot)).resolves.toEqual(["src/graphql/schema.ts"]);
+  });
+
+  it("honors maxFiles to avoid unbounded listings", async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), "semantic-agent-max-files-"));
+    await writeFile(join(workspaceRoot, "a.txt"), "a", "utf8");
+    await writeFile(join(workspaceRoot, "b.txt"), "b", "utf8");
+    await writeFile(join(workspaceRoot, "c.txt"), "c", "utf8");
+
+    await expect(readWorkspaceFiles(workspaceRoot, { maxFiles: 2 })).resolves.toEqual(["a.txt", "b.txt"]);
   });
 });
 

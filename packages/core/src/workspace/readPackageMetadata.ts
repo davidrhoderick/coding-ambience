@@ -14,9 +14,17 @@ type PackageJson = {
   devDependencies?: Record<string, string>;
 };
 
+const emptyPackageMetadata: PackageMetadata = {
+  scripts: {},
+  dependencies: []
+};
+
 export async function readPackageMetadata(workspaceRoot: string): Promise<PackageMetadata> {
-  const raw = await readFile(join(workspaceRoot, "package.json"), "utf8");
-  const parsed = JSON.parse(raw) as PackageJson;
+  const parsed = await readPackageJson(workspaceRoot);
+  if (!parsed) {
+    return emptyPackageMetadata;
+  }
+
   const packageManager = parsePackageManager(parsed.packageManager);
   const dependencies = new Set<string>();
 
@@ -33,6 +41,15 @@ export async function readPackageMetadata(workspaceRoot: string): Promise<Packag
     scripts: parsed.scripts ?? {},
     dependencies: [...dependencies].sort()
   };
+}
+
+async function readPackageJson(workspaceRoot: string): Promise<PackageJson | undefined> {
+  try {
+    const raw = await readFile(join(workspaceRoot, "package.json"), "utf8");
+    return JSON.parse(raw) as PackageJson;
+  } catch {
+    return undefined;
+  }
 }
 
 function parsePackageManager(value: string | undefined): PackageMetadata["packageManager"] {
