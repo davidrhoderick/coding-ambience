@@ -1,0 +1,11 @@
+{
+  "name": "stale-context-repo",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.11.0"
+  }
+}
