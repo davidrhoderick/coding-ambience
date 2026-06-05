@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { discoverContextFiles } from "../discoverContextFiles.js";
+import { extractRules } from "../extractRules.js";
+import { parseContextFile } from "../parseContextFile.js";
 import { readPackageMetadata } from "../../workspace/readPackageMetadata.js";
 import { readWorkspaceFiles } from "../../workspace/readWorkspaceFiles.js";
 
@@ -96,5 +98,24 @@ describe("context discovery", () => {
         type: "agents-md"
       }
     ]);
+  });
+});
+
+describe("context parsing", () => {
+  it("extracts path, command, package manager, dependency, and metadata rules", async () => {
+    const text = await readFile(join(fixtureRoot, "AGENTS.md"), "utf8");
+    const parsed = parseContextFile({ path: "AGENTS.md", text });
+    const rules = extractRules(parsed);
+
+    expect(rules.map((rule) => rule.ruleType)).toEqual([
+      "path-reference",
+      "command-reference",
+      "package-manager-reference",
+      "metadata-scope",
+      "dependency-reference"
+    ]);
+    expect(rules[0]?.sourceRange.startLine).toBe(3);
+    expect(rules[1]?.text).toContain("npm run test");
+    expect(rules[3]?.appliesTo).toEqual(["src/api/**/*.ts"]);
   });
 });
