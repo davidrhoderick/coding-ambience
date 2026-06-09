@@ -1263,6 +1263,10 @@ Expected: commit is created and pushed.
 - Create: `packages/core/src/validation/__tests__/validators.test.ts`
 - Modify: `packages/core/src/index.ts`
 
+**Implementation correction:** The main specification also requires `command-exists`.
+Task 5 therefore includes missing package-script detection in addition to the four
+fixture-repo findings described below.
+
 - [ ] **Step 1: Write validator tests**
 
 Create `packages/core/src/validation/__tests__/validators.test.ts`:
