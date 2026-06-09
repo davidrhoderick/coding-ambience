@@ -1,14 +1,16 @@
 import * as vscode from "vscode";
+import { SemanticAgentClient } from "./api/client.js";
+import { registerCommands } from "./commands/registerCommands.js";
+import { ContextHealthView } from "./views/contextHealthView.js";
 
 export function activate(context: vscode.ExtensionContext): void {
-  context.subscriptions.push(
-    vscode.commands.registerCommand("semanticAgent.pingServer", async () => {
-      await vscode.window.showInformationMessage("Semantic Agent server integration is not configured yet.");
-    }),
-    vscode.commands.registerCommand("semanticAgent.validateWorkspaceContext", async () => {
-      await vscode.window.showInformationMessage("Semantic Agent context validation is not configured yet.");
-    })
-  );
+  const config = vscode.workspace.getConfiguration("semanticAgent");
+  const serverUrl = config.get<string>("serverUrl", "http://127.0.0.1:4317");
+  const client = new SemanticAgentClient(serverUrl);
+  const contextHealthView = new ContextHealthView();
+
+  context.subscriptions.push(vscode.window.registerTreeDataProvider("semanticAgent.contextHealth", contextHealthView));
+  registerCommands(context, client, contextHealthView);
 }
 
 export function deactivate(): void {}
