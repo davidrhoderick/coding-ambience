@@ -32,6 +32,18 @@ Follow-up plans should cover:
 - Optional evidence-linked model provider enrichment.
 - MCP wrapper tools.
 
+## Execution Status
+
+Completed on June 9, 2026. Tasks 1-9 are implemented, verified, and pushed.
+
+Execution corrected three gaps discovered while comparing this plan with the main
+specification and integrated behavior:
+
+- Task 5 includes the required missing-command validator.
+- Finding feedback updates and audit insertion are transactional.
+- Server validation persists findings, supports repeated validation, and exposes
+  persisted feedback through the finding route.
+
 ## Commit and Push Policy
 
 Work directly on the current branch for now. At the end of every task:
