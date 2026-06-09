@@ -45,7 +45,25 @@ export function createRepositories(database: SemanticAgentDatabase) {
               @id, @workspaceId, @reviewSessionId, @source, @severity, @code, @message, @evidenceJson,
               @suggestedFix, @trustState, @userState, @sourceFile, @sourceStartLine, @sourceStartColumn,
               @sourceEndLine, @sourceEndColumn, @createdAt, @resolvedAt
-            )`
+            )
+            ON CONFLICT(id) DO UPDATE SET
+              workspace_id = excluded.workspace_id,
+              review_session_id = excluded.review_session_id,
+              source = excluded.source,
+              severity = excluded.severity,
+              code = excluded.code,
+              message = excluded.message,
+              evidence_json = excluded.evidence_json,
+              suggested_fix = excluded.suggested_fix,
+              trust_state = excluded.trust_state,
+              user_state = COALESCE(excluded.user_state, findings.user_state),
+              source_file = excluded.source_file,
+              source_start_line = excluded.source_start_line,
+              source_start_column = excluded.source_start_column,
+              source_end_line = excluded.source_end_line,
+              source_end_column = excluded.source_end_column,
+              created_at = excluded.created_at,
+              resolved_at = excluded.resolved_at`
           )
           .run(toFindingRow(finding));
       },

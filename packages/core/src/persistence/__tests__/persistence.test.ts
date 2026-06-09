@@ -99,4 +99,27 @@ describe("finding persistence", () => {
 
     database.close();
   });
+
+  it("updates an existing finding when validation runs again", () => {
+    const database = createDatabase(":memory:");
+    const repositories = createRepositories(database);
+    const finding = {
+      id: "finding_1",
+      workspaceId: "workspace_1",
+      source: "stale-context" as const,
+      severity: "warning" as const,
+      code: "stale-path-reference",
+      message: "Original message",
+      evidence: [{ kind: "path" as const, label: "Path", value: "src/graphql" }],
+      trustState: "deterministic" as const,
+      createdAt: new Date(0).toISOString()
+    };
+
+    repositories.findings.save(finding);
+    repositories.findings.save({ ...finding, message: "Updated message" });
+
+    expect(repositories.findings.get("finding_1")?.message).toBe("Updated message");
+
+    database.close();
+  });
 });
